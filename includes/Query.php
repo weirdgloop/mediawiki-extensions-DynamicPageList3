@@ -1406,7 +1406,7 @@ class Query {
 			$this->addTable( 'linktarget', 'lt' );
 			$this->addTable( 'page', 'pagesrc' );
 
-			if ( $this->isPageselFormatUsed() ) {
+			if ( $this->isPageselFormatUsed() && ( !isset( $this->parametersProcessed['linksto'] ) || !$this->parametersProcessed['linksto'] ) ) {
 				$this->addSelect(
 					[
 						'sel_title' => 'pagesrc.page_title',
@@ -1445,7 +1445,7 @@ class Query {
 			$this->addTable( 'pagelinks', 'pl' );
 			$this->addTable( 'linktarget', 'lt' );
 
-			if ( $this->isPageselFormatUsed() ) {
+			if ( $this->isPageselFormatUsed() && ( !isset( $this->parametersProcessed['linksfrom'] ) || !$this->parametersProcessed['linksfrom'] ) ) {
 				$this->addSelect( [ 'sel_title' => 'lt.lt_title', 'sel_ns' => 'lt.lt_namespace' ] );
 			}
 
