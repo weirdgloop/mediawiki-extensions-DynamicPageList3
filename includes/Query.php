@@ -1531,7 +1531,8 @@ class Query {
 
 			$where = '(' . implode( ' AND ', $ands ) . ')';
 		} else {
-			$where = 'CONCAT(page_namespace,page_title) NOT IN (SELECT CONCAT(lt.lt_namespace,lt.lt_title) FROM ' .
+			$where = 'CONCAT(' . $this->tableNames['page'] . '.page_namespace,' .
+				$this->tableNames['page'] . '.page_title) NOT IN (SELECT CONCAT(lt.lt_namespace,lt.lt_title) FROM ' .
 				$this->tableNames['pagelinks'] . ' pl JOIN ' .
 				$this->tableNames['linktarget'] . ' lt ON pl.pl_target_id = lt.lt_id WHERE ';
 
