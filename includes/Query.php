@@ -1373,7 +1373,7 @@ class Query {
 			$where[] = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
 			$this->addTable( 'pagelinks', 'plf' );
-			$this->addTable( 'linktarget', 'lt' );
+			$this->addTable( 'linktarget', 'ltf' );
 			$this->addTable( 'page', 'pagesrc' );
 
 			if ( $this->isPageselFormatUsed() && ( !isset( $this->parametersProcessed['linksto'] ) || !$this->parametersProcessed['linksto'] ) ) {
@@ -1386,9 +1386,9 @@ class Query {
 			}
 
 			$where = [
-				$this->dbr->tableName( 'page' ) . '.page_namespace = lt.lt_namespace',
-				$this->dbr->tableName( 'page' ) . '.page_title = lt.lt_title',
-				'lt.lt_id = plf.pl_target_id',
+				$this->dbr->tableName( 'page' ) . '.page_namespace = ltf.lt_namespace',
+				$this->dbr->tableName( 'page' ) . '.page_title = ltf.lt_title',
+				'ltf.lt_id = plf.pl_target_id',
 				'pagesrc.page_id = plf.pl_from'
 			];
 
@@ -2032,9 +2032,19 @@ class Query {
 					break;
 				case 'pagesel':
 					$this->addOrderBy( 'sortkey' );
+					$alias = match ( true ) {
+						count( $this->parameters->getParameter( 'linksfrom' ) ?? [] ) > 0 => 'ltf',
+						count( $this->parameters->getParameter( 'linksto' ) ?? [] ) > 0 => 'lt',
+						count( $this->parameters->getParameter( 'usedby' ) ?? [] ) > 0 => 'lt_usedby',
+						count( $this->parameters->getParameter( 'uses' ) ?? [] ) > 0 => 'lt_uses',
+						default => throw new LogicException(
+							'The ordermethod \'pagesel\' is only supported when using at least one of the ' .
+							'following parameters: linksfrom, linksto, usedby, or uses.'
+						),
+					};
 					$this->addSelect(
 						[
-							'sortkey' => 'CONCAT(lt.lt_namespace, lt.lt_title) ' . $this->getCollateSQL()
+							'sortkey' => "CONCAT($alias.lt_namespace, $alias.lt_title) " . $this->getCollateSQL()
 						]
 					);
 					break;
@@ -2363,7 +2373,7 @@ class Query {
 			$where = '(' . implode( ' OR ', $ors ) . ')';
 		} else {
 			$this->addTables( [
-				'linktarget' => 'lt',
+				'linktarget' => 'lt_usedby',
 				'templatelinks' => 'tpl',
 			] );
 
@@ -2376,10 +2386,10 @@ class Query {
 			] );
 
 			$this->addJoin(
-				'lt',
-				[ 'JOIN', [ "page_title = $titleField", "page_namespace = $nsField" ] ]
+				'lt_usedby',
+				[ 'JOIN', [ "page_title = lt_usedby.$titleField", "page_namespace = lt_usedby.$nsField" ] ]
 			);
-			$this->addJoin( 'tpl', [ 'JOIN', 'lt_id = tl_target_id', ]
+			$this->addJoin( 'tpl', [ 'JOIN', 'lt_usedby.lt_id = tl_target_id', ]
 			);
 			$ors = [];
 
@@ -2401,11 +2411,11 @@ class Query {
 	 */
 	private function _uses( $option ) {
 		$this->addTables( [
-			'linktarget' => 'lt',
+			'linktarget' => 'lt_uses',
 			'templatelinks' => 'tl',
 		] );
 
-		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND lt.lt_id = tl.tl_target_id AND (';
+		$where = $this->dbr->tableName( 'page' ) . '.page_id=tl.tl_from AND lt_uses.lt_id = tl.tl_target_id AND (';
 		$ors = [];
 
 		$linksMigration = MediaWikiServices::getInstance()->getLinksMigration();
@@ -2413,13 +2423,13 @@ class Query {
 
 		foreach ( $option as $linkGroup ) {
 			foreach ( $linkGroup as $link ) {
-				$_or = '(lt.' . $nsField . '=' . (int)$link->getNamespace();
+				$_or = '(lt_uses.' . $nsField . '=' . (int)$link->getNamespace();
 
 				if ( $this->parameters->getParameter( 'ignorecase' ) ) {
-					$_or .= ' AND LOWER(CONVERT(lt.' . $titleField . ' USING utf8mb4)) = LOWER(' .
+					$_or .= ' AND LOWER(CONVERT(lt_uses.' . $titleField . ' USING utf8mb4)) = LOWER(' .
 						$this->dbr->addQuotes( $link->getDBkey() ) . '))';
 				} else {
-					$_or .= ' AND ' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
+					$_or .= ' AND lt_uses.' . $titleField . ' = ' . $this->dbr->addQuotes( $link->getDBkey() ) . ')';
 				}
 
 				$ors[] = $_or;
