@@ -1206,7 +1206,7 @@ class Query {
 		$this->addWhere( [
 			$this->dbr->tableName( 'page' ) . '.page_id = rev.rev_page',
 			'rev.rev_timestamp = (SELECT MIN(rev_aux_snc.rev_timestamp) FROM ' .
-				$$this->dbr->tableName( 'revision' ) .
+				$this->dbr->tableName( 'revision' ) .
 					' AS rev_aux_snc WHERE rev_aux_snc.rev_page=' . $this->dbr->tableName( 'page' ) . '.page_id AND rev_aux_snc.rev_timestamp >= ' .
 					$this->convertTimestamp( $option ) . ')'
 		] );
