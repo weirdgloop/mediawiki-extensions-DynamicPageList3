@@ -700,7 +700,9 @@ class Parameters extends ParametersData {
 		$extraParams = explode( '|', $option );
 		foreach ( $extraParams as $parameter ) {
 			$parameter = trim( $parameter );
-			if ( strtolower( $parameter ) === 'main' || strtolower( $parameter ) === '(main)' ) {
+			$parameter = str_replace( ' ', '_', $parameter );
+			$lowerParam = strtolower( $parameter );
+			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
 			}
 
@@ -742,7 +744,9 @@ class Parameters extends ParametersData {
 		$extraParams = explode( '|', $option );
 		foreach ( $extraParams as $parameter ) {
 			$parameter = trim( $parameter );
-			if ( strtolower( $parameter ) === 'main' || strtolower( $parameter ) === '(main)' ) {
+			$parameter = str_replace( ' ', '_', $parameter );
+			$lowerParam = strtolower( $parameter );
+			if ( $lowerParam === 'main' || $lowerParam === '(main)' ) {
 				$parameter = '';
 			}
 
