@@ -385,7 +385,7 @@ class Query {
 			$res = iterator_to_array( $res );
 
 			if ( $calcRows ) {
-				$res['count'] = $dbr->selectField( $tables, 'FOUND_ROWS()', '', $qname );
+				$res['count'] = $dbr->selectField( [], 'FOUND_ROWS()', '', $qname );
 			}
 
 			return $res;
