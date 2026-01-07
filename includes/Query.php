@@ -6,6 +6,7 @@ namespace MediaWiki\Extension\DynamicPageList4;
 
 use MediaWiki\Extension\DynamicPageList4\Exceptions\QueryException;
 use MediaWiki\ExternalLinks\LinkFilter;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MainConfigNames;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
@@ -234,10 +235,15 @@ class Query {
 			$this->queryBuilder->setMaxExecutionTime( $maxQueryTime );
 		}
 
-		$doQuery = function () use ( $calcRows, $qname ): array {
+		$doQuery = function () use ( $calcRows, $qname, $parameters ): array {
 			try {
 				$res = $this->queryBuilder->fetchResultSet();
 				$res = iterator_to_array( $res );
+				LoggerFactory::getInstance( 'dynamicpagelist' )->debug( 'dpl query', [
+					'dynamicpagelist_res' => var_export( $res, true ),
+					'dynamicpagelist_params' => var_export( $parameters, true ),
+					'dynamicpagelist_page' => MediaWikiServices::getInstance()->getParser()->getPage()?->__toString(),
+				] );
 				if ( $calcRows ) {
 					$res['count'] = $this->dbr->newSelectQueryBuilder()
 						->select( 'FOUND_ROWS()' )
