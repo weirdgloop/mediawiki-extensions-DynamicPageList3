@@ -7,6 +7,7 @@ use DateTime;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
+use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\PoolCounter\PoolCounterWorkViaCallback;
 use MediaWiki\Registration\ExtensionRegistry;
@@ -380,9 +381,15 @@ class Query {
 		$join = $this->join;
 		$dbr = $this->dbr;
 
-		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows ) {
+		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows,
+			$parameters ) {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 			$res = iterator_to_array( $res );
+			LoggerFactory::getInstance( 'dynamicpagelist' )->debug( 'dpl query', [
+				'dynamicpagelist_res' => var_export( $res, true ),
+				'dynamicpagelist_params' => var_export( $parameters, true ),
+				'dynamicpagelist_page' => MediaWikiServices::getInstance()->getParser()->getPage()?->__toString(),
+			] );
 
 			if ( $calcRows ) {
 				$res['count'] = $dbr->selectField( [], 'FOUND_ROWS()', '', $qname );
