@@ -254,16 +254,16 @@ class Article {
 				switch ( $ordermethod ) {
 					case 'category':
 						// Count one more page in this heading
-						$ltTitle = $row->lt_title ?? '';
-						self::$headings[$ltTitle] = ( self::$headings[$ltTitle] ?? 0 ) + 1;
+						$clTo = $row->cl_to ?? '';
+						self::$headings[$clTo] = ( self::$headings[$clTo] ?? 0 ) + 1;
 
-						$text = str_replace( '_', ' ', $ltTitle );
+						$text = str_replace( '_', ' ', $clTo );
 						$message = wfMessage( 'uncategorizedpages' )->escaped();
 
-						$article->mParentHLink = $ltTitle === '' ?
+						$article->mParentHLink = $clTo === '' ?
 							// Uncategorized page (used if ordermethod=category,...)
 							"[[:Special:Uncategorizedpages|$message]]" :
-							"[[:Category:$ltTitle|$text]]";
+							"[[:Category:$clTo|$text]]";
 						break;
 					case 'user':
 						if ( $revActorName !== ActorStore::UNKNOWN_USER_NAME ) {

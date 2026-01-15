@@ -408,7 +408,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithHeadingModeCategory(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'lt_title' => 'TestCategory',
+			'cl_to' => 'TestCategory',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -466,7 +466,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 	public function testNewFromRowWithUncategorizedPage(): void {
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'lt_title' => '',
+			'cl_to' => '',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -513,7 +513,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		// Create article that adds to headings
 		$row = $this->createMockRow( [
 			'page_id' => 123,
-			'lt_title' => 'Category1',
+			'cl_to' => 'Category1',
 		] );
 
 		$title = $this->createMock( Title::class );
@@ -535,7 +535,7 @@ class ArticleTest extends MediaWikiIntegrationTestCase {
 		// Create another article in same category
 		$row2 = $this->createMockRow( [
 			'page_id' => 124,
-			'lt_title' => 'Category1',
+			'cl_to' => 'Category1',
 		] );
 
 		$title2 = $this->createMock( Title::class );

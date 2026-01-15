@@ -15,7 +15,6 @@ use MediaWiki\Html\Html;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Parser\Parser;
 use MediaWiki\Parser\ParserOutputLinkTypes;
-use MediaWiki\Parser\PPFrame;
 use MediaWiki\Registration\ExtensionRegistry;
 use MediaWiki\Request\WebRequest;
 use MediaWiki\Title\Title;
@@ -91,8 +90,7 @@ class Parse {
 		Parser $parser,
 		array &$reset,
 		array &$eliminate,
-		bool $isParserTag,
-		?PPFrame $frame = null
+		bool $isParserTag
 	): string {
 		$dplStartTime = microtime( true );
 
@@ -101,7 +99,8 @@ class Parse {
 		$title = Title::castFromPageReference( $parser->getPage() );
 
 		// Check that we are not in an infinite transclusion loop
-		if ( $frame && !$frame->loopCheck( $title ) ) {
+		// @phan-suppress-next-line PhanDeprecatedProperty
+		if ( isset( $parser->mTemplatePath[$title->getPrefixedText()] ) ) {
 			$this->logger->addMessage( Constants::WARN_TRANSCLUSIONLOOP, $title->getPrefixedText() );
 			return $this->getFullOutput( totalResults: 0, skipHeaderFooter: true );
 		}
@@ -372,7 +371,7 @@ class Parse {
 
 			if ( $this->parameters->getParameter( 'goal' ) === 'categories' ) {
 				$pageNamespace = NS_CATEGORY;
-				$pageTitle = $row->lt_title;
+				$pageTitle = $row->cl_to;
 			} elseif ( $this->parameters->getParameter( 'openreferences' ) ) {
 				$imageContainer = $this->parameters->getParameter( 'imagecontainer' ) ?? [];
 				if ( $imageContainer !== [] ) {
