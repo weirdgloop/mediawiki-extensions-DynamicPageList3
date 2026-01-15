@@ -213,7 +213,7 @@ class Hooks {
 			$input = $parser->recursiveTagParse( $input, $frame );
 		}
 
-		$text = $parse->parse( $input, $parser, $reset, $eliminate, true );
+		$text = $parse->parse( $input, $parser, $reset, $eliminate, true, $input );
 		$parserOutput = $parser->getOutput();
 
 		// we can remove the templates by save/restore
@@ -283,7 +283,8 @@ class Hooks {
 		}
 
 		$parse = new Parse();
-		$dplresult = $parse->parse( $input, $parser, $reset, $eliminate, false );
+		$dplresult = $parse->parse( $input, $parser, $reset, $eliminate, false,
+			join( "|", array_slice( $arg_list, 1 ) ) );
 
 		return [
 			// @phan-suppress-next-line PhanPluginMixedKeyNoKey

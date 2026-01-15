@@ -166,7 +166,7 @@ class Query {
 	 * @param string $profilingContext Used to see the origin of a query in the profiling
 	 * @return array|bool
 	 */
-	public function buildAndSelect( bool $calcRows = false, $profilingContext = '' ) {
+	public function buildAndSelect( bool $calcRows = false, $profilingContext = '', $input = '' ) {
 		global $wgNonincludableNamespaces, $wgDebugDumpSql;
 
 		$options = [];
@@ -382,10 +382,11 @@ class Query {
 		$dbr = $this->dbr;
 
 		$doQuery = static function () use ( $qname, $dbr, $tables, $fields, $where, $options, $join, $calcRows,
-			$parameters ) {
+			$parameters, $input ) {
 			$res = $dbr->select( $tables, $fields, $where, $qname, $options, $join );
 			$res = iterator_to_array( $res );
-			LoggerFactory::getInstance( 'dynamicpagelist' )->debug( 'dpl query', [
+			LoggerFactory::getInstance( 'dynamicpagelist' )->debug( 'dpl3 query', [
+				'dynamicpagelist_input' => $input,
 				'dynamicpagelist_res' => var_export( $res, true ),
 				'dynamicpagelist_params' => var_export( $parameters, true ),
 				'dynamicpagelist_page' => MediaWikiServices::getInstance()->getParser()->getPage()?->__toString(),
