@@ -90,7 +90,8 @@ class Parse {
 		Parser $parser,
 		array &$reset,
 		array &$eliminate,
-		bool $isParserTag
+		bool $isParserTag,
+		string $fullArgs = ''
 	): string {
 		$dplStartTime = microtime( true );
 
@@ -207,7 +208,7 @@ class Parse {
 				? str_replace( [ '*', '/' ], '-', $currentTitle->getPrefixedDBkey() )
 				: '';
 
-			$rows = $query->buildAndSelect( $needsCalcRows, $profilingContext );
+			$rows = $query->buildAndSelect( $needsCalcRows, $profilingContext, $fullArgs );
 			if ( $rows === false ) {
 				// This error path is very fast (We exit immediately if poolcounter is full)
 				// Thus it should be safe to try again in ~5 minutes.

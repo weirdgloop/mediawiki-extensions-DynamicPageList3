@@ -102,7 +102,7 @@ class Query {
 	 * @param bool $calcRows Whether we need to calculate the found rows count.
 	 * @param string $profilingContext Used to see the origin of a query in the profiling.
 	 */
-	public function buildAndSelect( bool $calcRows, string $profilingContext ): array|false {
+	public function buildAndSelect( bool $calcRows, string $profilingContext, $input = '' ): array|false {
 		$parameters = $this->parameters->getAllParameters();
 		foreach ( $parameters as $parameter => $option ) {
 			if ( $option === [] ) {
@@ -235,11 +235,12 @@ class Query {
 			$this->queryBuilder->setMaxExecutionTime( $maxQueryTime );
 		}
 
-		$doQuery = function () use ( $calcRows, $qname, $parameters ): array {
+		$doQuery = function () use ( $calcRows, $qname, $parameters, $input ): array {
 			try {
 				$res = $this->queryBuilder->fetchResultSet();
 				$res = iterator_to_array( $res );
-				LoggerFactory::getInstance( 'dynamicpagelist' )->debug( 'dpl query', [
+				LoggerFactory::getInstance( 'dynamicpagelist' )->debug( 'dpl4 query', [
+					'dynamicpagelist_input' => $input,
 					'dynamicpagelist_res' => var_export( $res, true ),
 					'dynamicpagelist_params' => var_export( $parameters, true ),
 					'dynamicpagelist_page' => MediaWikiServices::getInstance()->getParser()->getPage()?->__toString(),
