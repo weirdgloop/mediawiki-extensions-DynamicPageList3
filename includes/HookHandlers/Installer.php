@@ -15,8 +15,7 @@ class Installer implements LoadExtensionSchemaUpdatesHook {
 	 * @codeCoverageIgnore Tested by updating or installing MediaWiki.
 	 */
 	public function onLoadExtensionSchemaUpdates( $updater ) {
-		// WGL - Avoid creating a bunch of jobs while trying to upgrade mediawiki. We can run this script later to avoid hammering DB.
-		//$updater->addPostDatabaseUpdateMaintenance( DeleteTemplate::class );
+		$updater->addPostDatabaseUpdateMaintenance( DeleteTemplate::class );
 		$updater->addPostDatabaseUpdateMaintenance( DropView::class );
 	}
 }
