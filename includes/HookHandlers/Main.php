@@ -5,6 +5,7 @@ declare( strict_types = 1 );
 namespace MediaWiki\Extension\DynamicPageList4\HookHandlers;
 
 use MediaWiki\Extension\DynamicPageList4\Config;
+use MediaWiki\Extension\DynamicPageList4\ConfigNames;
 use MediaWiki\Extension\DynamicPageList4\Parse;
 use MediaWiki\Extension\DynamicPageList4\SectionTranscluder;
 use MediaWiki\Extension\DynamicPageList4\Utils;
@@ -95,7 +96,7 @@ class Main implements ParserFirstCallInitHook {
 		// create list and do a recursive parse of the output
 
 		$parse = new Parse();
-		if ( $this->config->get( 'recursiveTagParse' ) ) {
+		if ( $this->config->get( ConfigNames::RecursiveTagParse ) ) {
 			$input = $parser->recursiveTagParse( $input, $frame );
 		}
 
@@ -138,7 +139,6 @@ class Main implements ParserFirstCallInitHook {
 
 		if ( $reset['templates'] ?? false ) {
 			$refProp = new ReflectionProperty( $parserOutput, 'mTemplates' );
-			$refProp->setAccessible( true );
 			$refProp->setValue( $parserOutput, $saveTemplates );
 		}
 
@@ -148,7 +148,6 @@ class Main implements ParserFirstCallInitHook {
 
 		if ( $reset['images'] ?? false ) {
 			$refProp = new ReflectionProperty( $parserOutput, 'mImages' );
-			$refProp->setAccessible( true );
 			$refProp->setValue( $parserOutput, $saveImages );
 		}
 

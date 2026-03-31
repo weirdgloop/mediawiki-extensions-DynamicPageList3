@@ -23,7 +23,6 @@ use Wikimedia\Rdbms\IReadableDatabase;
 use Wikimedia\Rdbms\LikeMatch;
 use Wikimedia\Rdbms\LikeValue;
 use Wikimedia\Rdbms\SelectQueryBuilder;
-use Wikimedia\Rdbms\Subquery;
 use Wikimedia\Timestamp\TimestampException;
 use function array_map;
 use function array_merge;
@@ -246,8 +245,8 @@ class Query {
 		}
 
 		// Partially taken from intersection
-		$queryCacheTime = $this->config->get( 'queryCacheTime' );
-		$maxQueryTime = $this->config->get( 'maxQueryTime' );
+		$queryCacheTime = $this->config->get( ConfigNames::QueryCacheTime );
+		$maxQueryTime = $this->config->get( ConfigNames::MaxQueryTime );
 
 		if ( $maxQueryTime ) {
 			$this->queryBuilder->setMaxExecutionTime( $maxQueryTime );
@@ -444,7 +443,7 @@ class Query {
 		}
 
 		if ( $dbType === 'mysql' ) {
-			$fieldExpr = "LOWER(" . $this->applyCollation( $field ) . ")";
+			$fieldExpr = 'LOWER(' . $this->applyCollation( $field ) . ')';
 			if ( $operator === 'REGEXP' ) {
 				return $this->buildRegexpExpression( $fieldExpr, $value );
 			}
@@ -525,7 +524,7 @@ class Query {
 				->caller( __METHOD__ )
 				->getSQL();
 
-			$this->queryBuilder->select( [ 'rev_comment_text' => new Subquery( $subquery ) ] );
+			$this->queryBuilder->select( [ 'rev_comment_text' => "($subquery)" ] );
 		}
 	}
 

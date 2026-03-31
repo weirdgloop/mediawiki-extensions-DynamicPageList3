@@ -46,51 +46,12 @@ class SectionTranscluder {
 	 */
 
 	/**
-	 * Register what we're working on in the parser, so we don't fall into a trap.
-	 */
-	private static function open( Parser $parser, string $part1 ): bool {
-		// Infinite loop test
-		/** @phan-suppress-next-line PhanDeprecatedProperty */
-		if ( isset( $parser->mTemplatePath[$part1] ) ) {
-			Utils::getLogger()->debug( 'Template loop broken at {part1}',
-				[ 'part1' => $part1 ]
-			);
-			return false;
-		}
-
-		/** @phan-suppress-next-line PhanDeprecatedProperty */
-		$parser->mTemplatePath ??= [];
-
-		/** @phan-suppress-next-line PhanDeprecatedProperty */
-		$parser->mTemplatePath[$part1] = 1;
-		return true;
-	}
-
-	/**
-	 * Finish processing the function.
-	 */
-	private static function close( Parser $parser, string $part1 ): void {
-		// Infinite loop test
-		/** @phan-suppress-next-line PhanDeprecatedProperty */
-		if ( !isset( $parser->mTemplatePath[$part1] ) ) {
-			Utils::getLogger()->debug( 'Closed an unopened template loop at {part1}',
-				[ 'part1' => $part1 ]
-			);
-			return;
-		}
-
-		/** @phan-suppress-next-line PhanDeprecatedProperty */
-		unset( $parser->mTemplatePath[$part1] );
-	}
-
-	/**
 	 * Handle recursive substitution here, so we can break cycles, and set up
 	 * return values so that edit sections will resolve correctly.
 	 */
 	private static function parse(
 		Parser $parser,
 		string $text,
-		string $part1,
 		bool $recursionCheck,
 		int $maxLength,
 		string $link,
@@ -102,21 +63,15 @@ class SectionTranscluder {
 			$text = preg_replace( $pattern, '', $text );
 		}
 
-		if ( self::open( $parser, $part1 ) ) {
-			if ( !$recursionCheck ) {
-				$text = self::callParserPreprocess( $parser, $text, $parser->getPage(), $parser->getOptions() );
-				self::close( $parser, $part1 );
-			}
-
-			if ( $maxLength > 0 ) {
-				$text = self::limitTranscludedText( $text, $maxLength, $link );
-			}
-
-			return $trim ? trim( $text ) : $text;
+		if ( !$recursionCheck ) {
+			$text = self::callParserPreprocess( $parser, $text, $parser->getPage(), $parser->getOptions() );
 		}
 
-		$title = Title::castFromPageReference( $parser->getPage() );
-		return "[[{$title->getPrefixedText()}]]<!-- WARNING: DPL4 SectionTranscluder loop detected -->";
+		if ( $maxLength > 0 ) {
+			$text = self::limitTranscludedText( $text, $maxLength, $link );
+		}
+
+		return $trim ? trim( $text ) : $text;
 	}
 
 	/**
@@ -191,7 +146,6 @@ class SectionTranscluder {
 			$piece = self::parse(
 				parser: $parser,
 				text: $piece,
-				part1: "section:$page|$sec",
 				recursionCheck: $recursionCheck,
 				maxLength: -1,
 				link: '',
@@ -266,7 +220,6 @@ class SectionTranscluder {
 		// If there is a valid cut-off point we use it; it will be the largest one which is not above the limit.
 		if ( $n0 >= 0 ) {
 			// We try to cut off at a word boundary, this may lead to a shortening of maximum 15 chars.
-			/** @phan-suppress-next-line PhanSuspiciousValueComparison */
 			if ( $nb > 0 && $nb + 15 > $n0 ) {
 				$n0 = $nb;
 			}
@@ -425,7 +378,6 @@ class SectionTranscluder {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: substr( $text, 0, $m[1][1] - 1 ),
-					part1: "heading:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -477,7 +429,6 @@ class SectionTranscluder {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: $piece,
-					part1: "heading:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -492,7 +443,6 @@ class SectionTranscluder {
 				$output[0] = self::parse(
 					parser: $parser,
 					text: $piece,
-					part1: "heading:$page|$sec",
 					recursionCheck: $recursionCheck,
 					maxLength: $maxLength,
 					link: $link,
@@ -512,7 +462,6 @@ class SectionTranscluder {
 			$output[$n++] = self::parse(
 				parser: $parser,
 				text: $piece,
-				part1: "heading:$page|$sec",
 				recursionCheck: $recursionCheck,
 				maxLength: $maxLength,
 				link: $link,
@@ -724,7 +673,7 @@ class SectionTranscluder {
 								$exParm = substr( $exParm, 0, $limpos );
 							}
 
-							if ( $second && ( $output[$n] === '' || !str_ends_with( $output[$n], "\n" ) ) ) {
+							if ( $second && ( $output[$n] === '' || !str_ends_with( $output[$n] ?? '', "\n" ) ) ) {
 								$output[$n] .= "\n|";
 							} elseif ( $second ) {
 								$output[$n] .= '|';
@@ -835,7 +784,7 @@ class SectionTranscluder {
 		ParserOptions $options
 	): string {
 		$config = Config::getInstance();
-		if ( $config->get( 'recursivePreprocess' ) ) {
+		if ( $config->get( ConfigNames::RecursivePreprocess ) ) {
 			self::softResetParser( $parser );
 			$parser->setOutputType( Parser::OT_PREPROCESS );
 
